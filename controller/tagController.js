@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler')
 
-const Tag = require('../models/tag.model')
+const Tag = require('../models/tag.model.js')
 
 const addTag = asyncHandler(async(req, res, next)=>{
     const {name} = req.body

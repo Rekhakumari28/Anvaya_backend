@@ -1,33 +1,21 @@
 const express = require('express')
 
 //lead router
-const leadRouter = express.Router()
-
-//comment routes
-const commentRouter  = express.Router()
+const router = express.Router()
 
 //import routes functions for lead
-const  { addNewLead, findAllLeads, filterdLead, updateLeadById, leadFindById, deleteLeadById } = require('../controller/leadController')
-
-//import routes functions for comment
-const {addComment, getAllComment} = require('../controller/commentController')
+const  { addNewLead, findAllLeads, updateLeadById, leadFindById, deleteLeadById ,addComment, getAllComment} = require('../controller/leadController.js')
 
 //lead route
-leadRouter.post("/", addNewLead)
-leadRouter.get("/", findAllLeads)
-leadRouter.get("", filterdLead)
-leadRouter.put("/:leadId", updateLeadById)
-leadRouter.get("/:leadId", leadFindById)
-leadRouter.delete("/:leadId", deleteLeadById)
-
-
+router.post("/", addNewLead)
+router.get("/", findAllLeads)
+router.patch("/:leadId", updateLeadById)
+router.get("/:leadId", leadFindById)
+router.delete("/:leadId", deleteLeadById)
 //comment route
+router.post("/comments",addComment)
+router.get("/comments", getAllComment)
 
-leadRouter.get("/:leadId/comment", leadFindById.addComment)
-leadRouter.get("/:leadId comment", leadFindById.getAllComment)
-
-
-module.exports = commentRouter
-
-
-module.exports = leadRouter
+router.route("/:leadId/comments").post(addComment)
+router.route("/:leadId/comments").get(getAllComment)
+module.exports = router

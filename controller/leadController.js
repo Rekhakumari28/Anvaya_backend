@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 
-const Lead = require("../models/lead.model");
-
+const Lead = require("../models/lead.model.js");
+const Comment = require('../models/comment.model.js')
 //add lead
 async function addLead(newLead) {
   try {
@@ -14,6 +14,7 @@ async function addLead(newLead) {
 }
 
 const addNewLead = asyncHandler(async (req, res, next) => {
+  
   try {
     const lead = await addLead(req.body);
     res.status(201).json({ message: "New lead created.", lead: lead });
@@ -22,10 +23,11 @@ const addNewLead = asyncHandler(async (req, res, next) => {
   }
 });
 
+
 //get all lead
 async function getAllLeads() {
   try {
-    const lead = await Lead.find()
+    const lead = await Lead.find().populate('salesAgent')
     return lead;
   } catch (error) {
     console.log("Error occured while fetching leads.");
@@ -36,23 +38,32 @@ const findAllLeads = asyncHandler(async (req, res, next) => {
   try {
 
     const leads = await getAllLeads();
-    const filters = req.query;
+  if(leads){
+    res.status(201).json({message: "All Leads", leads})
+  }
     
-  console.log(filters, "filters")
-  
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch leads", error: error });
+  }
+});
+
+const getAllLeadsWithQuery = asyncHandler(async (req, res, next) => {
+  try {
+
+    const leads = await getAllLeads();
+    const filters = req.query;
+   
   const filteredLeads = leads.filter(lead => {
       let isValid = true;
-      for (key in filters) {
-       
+      for (key in filters) {       
           isValid = isValid && lead[key]== filters[key]
-
       }
       return isValid;
   });
  
     if (filteredLeads) {
       res.send(filteredLeads)
-    } else if(!filterdLead ){
+    } else if(!filteredLeads ){
       res.json(leads)
     } else{
       res.status(404).json({ error: "Leads not found" });
@@ -60,13 +71,7 @@ const findAllLeads = asyncHandler(async (req, res, next) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch leads", error: error });
   }
-});
-
-
-const filterdLead = asyncHandler(async (req, res, next) => {
-  ;
 })
-
 
 //update lead
 
@@ -149,4 +154,47 @@ const deleteLeadById = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { addNewLead, findAllLeads, filterdLead, updateLeadById, leadFindById,  deleteLeadById };
+
+//add comment 
+const addComment = asyncHandler(async (req, res, next) => { 
+  try {
+  
+    const lead = await Lead.findById(req.params.leadId);   
+    if (!lead) {
+      return res.status(404).json({ error: "Lead not found" });    }
+
+    const newComment = new Comment(req.body);
+    const savedComment = await newComment.save();
+    res
+      .status(201)
+      .json({ message: "Comment added successfully", savedComment });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+//get comment
+const getAllComment = asyncHandler(async (req, res, next) => {
+  try {
+    const { leadId } = req.params;  
+
+    const lead = await Lead.findById(req.params.leadId);    
+    if (!lead) {
+      return res.status(404).json({ error: "Lead not found" });
+    }
+
+    // Fetch all comments for the lead
+    const comments = await Comment.find({ lead: leadId }).populate(
+      "author",
+      "name"
+    );
+
+    res.status(200).json({ message: "getting all comments", comments });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
+module.exports = { addNewLead, findAllLeads, updateLeadById, leadFindById,  deleteLeadById ,addComment, getAllComment};

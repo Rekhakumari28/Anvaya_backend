@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler");
 
-const SalesAgent = require("../models/salesAgent.model");
+const SalesAgent = require("../models/salesAgent.model.js");
 
 //addSalesAgent
 async function addSalesAgent(newSalesAgent) {

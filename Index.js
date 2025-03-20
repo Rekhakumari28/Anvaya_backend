@@ -24,17 +24,16 @@ app.get("/", (req, res) => {
 
 
 //import router
-const salesAgentRouter = require("./routes/salesAgentRoute");
-const leadRouter = require("./routes/leadRoute");
-const commentRouter = require('./routes/commentRoute')
-const tagRouter = require('./routes/tagsRoute')
+const salesAgentRouter = require("./routes/salesAgentRoute.js");
+const leadRouter = require("./routes/leadRoute.js");
+const tagRouter = require('./routes/tagsRoute.js')
+const reportRouter = require("./routes/reportRoute.js")
 
 //routes
-app.use("/agents", salesAgentRouter);
-app.use("/leads", leadRouter);
-app.use("/leads", commentRouter)
-app.use("/tags", tagRouter)
-
+app.use("/api/agents", salesAgentRouter);
+app.use("/api/leads", leadRouter);
+app.use("/api/tags", tagRouter)
+app.use("/api/reports", reportRouter)
 
 //port
 const PORT = 3000;
