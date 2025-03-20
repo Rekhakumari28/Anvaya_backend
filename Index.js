@@ -12,7 +12,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-const { initializeDatabase } = require("./db/db.connection");
+const { initializeDatabase } = require("./db/db.connection.js");
 
 app.use(express.json());
 
