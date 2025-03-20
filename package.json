@@ -8,14 +8,14 @@
   },
   "name": "anvaya_backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "Index.js",
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"node index.js"
+    "dev":"node Index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Rekha Kumari Bheel",
   "license": "ISC",
   "description": ""
 }

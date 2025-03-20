@@ -22,7 +22,6 @@ app.get("/", (req, res) => {
   res.send("Welcome to Avanya! This is Avanya CRM Backend.");
 });
 
-
 //import router
 const salesAgentRouter = require("./routes/salesAgentRoute.js");
 const leadRouter = require("./routes/leadRoute.js");
