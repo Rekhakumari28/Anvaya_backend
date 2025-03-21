@@ -85,10 +85,15 @@ try {
       return objectsByKeyValue;
     }, {});
 
-  const groupByBrand = groupBy(["status"]);
-  res.status(201).json({ message:"Lead groupedBy is created as: ", leadsByStatus: groupByBrand(leads) }) 
+  const groupByBrand = groupBy(["status"]); 
+
+  if( groupByBrand(leads)){
+    res.status(201).json({ message:"Lead groupedBy is created as: ", leadsByStatus: groupByBrand(leads) }) 
+  }else{
+     res.status(404).json({ error:"Lead not found"})
+  }
 } catch (error) {
-  
+  res.status(500).json({ error: "Failed to fetch leads", error: error });
 }
 })
 
