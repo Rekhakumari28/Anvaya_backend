@@ -73,6 +73,26 @@ const getAllLeadsWithQuery = asyncHandler(async (req, res, next) => {
   }
 })
 
+//grouped lead 
+
+const groupedLeadBy = asyncHandler(async (req, res, next) => {
+try {
+  const leads = await getAllLeads();
+  const groupBy = (keys) => (array) =>
+    array.reduce((objectsByKeyValue, obj) => {
+      const value = keys.map((key) => obj[key]).join("-");
+      objectsByKeyValue[value] = (objectsByKeyValue[value] || []).concat(obj);
+      return objectsByKeyValue;
+    }, {});
+
+  const groupByBrand = groupBy(["status"]);
+  res.status(201).json({ message:"Lead groupedBy is created as: ", leadsByStatus: groupByBrand(leads) }) 
+} catch (error) {
+  
+}
+})
+
+
 //update lead
 
 async function updateLead(leadId, dataToUpdate) {
@@ -197,4 +217,4 @@ const getAllComment = asyncHandler(async (req, res, next) => {
 
 
 
-module.exports = { addNewLead, findAllLeads, updateLeadById, leadFindById,  deleteLeadById ,addComment, getAllComment};
+module.exports = { addNewLead, findAllLeads, getAllLeadsWithQuery, groupedLeadBy, updateLeadById, leadFindById,  deleteLeadById ,addComment, getAllComment};
