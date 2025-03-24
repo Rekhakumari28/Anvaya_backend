@@ -3,16 +3,17 @@ const Lead = require('../models/lead.model.js')
 
 
 const getReportLastWeek = asyncHandler(async(req, res)=>{
+    console.log("init")
     try {
       const leads = await Lead.find().populate("salesAgent")
-      const reportLastWeek = leads.filter(lead=> lead.status === "Closed" )
-      const camparingLead = reportLastWeek.filter(lead=> {
-        const dateCur = new Date();
-        const lastWeekdate = dateCur.getDate() - 7
-return lastWeekdate
-      } )
     
-       res.json({message: "report of closed lead last week: ", camparingLead})
+      let oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      const reportLastWeek = leads.filter(lead=> lead.status === "Closed" &&  new Date(lead.updatedAt) >= oneWeekAgo)
+    
+    console.log(reportLastWeek)
+       res.json({message: "report of closed lead last week: ", reportLastWeek})
 
     } catch (error) {
         res.status(500).json({ error: "Failed to get report.", error: error }); 

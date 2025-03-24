@@ -32,7 +32,7 @@ const reportRouter = require("./routes/reportRoute.js")
 app.use("/api/agents", salesAgentRouter);
 app.use("/api/leads", leadRouter);
 app.use("/api/tags", tagRouter)
-app.use("/api/reports", reportRouter)
+app.use("/api/report", reportRouter)
 
 //port
 const PORT = 3000;

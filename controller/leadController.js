@@ -27,51 +27,43 @@ const addNewLead = asyncHandler(async (req, res, next) => {
 //get all lead
 async function getAllLeads() {
   try {
-    const lead = await Lead.find().populate('salesAgent')
+    const lead = await Lead.find()
     return lead;
   } catch (error) {
     console.log("Error occured while fetching leads.");
   }
+
 }
+
 
 const findAllLeads = asyncHandler(async (req, res, next) => {
   try {
 
     const leads = await getAllLeads();
-  if(leads){
-    res.status(201).json({message: "All Leads", leads})
-  }
-    
+
+    const filters = req.query;
+   
+    const filteredLeads = leads.filter(lead => {
+        let isValid = true;
+        for (key in filters) {       
+            isValid = isValid && lead[key]== filters[key]
+        }
+        return isValid;
+    });
+   
+      if (filteredLeads) {
+        res.send(filteredLeads)
+      } else if(!filteredLeads ){
+        res.json(leads)
+      } else{
+        res.status(404).json({ error: "Leads not found" });
+      }
+
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch leads", error: error });
   }
 });
 
-const getAllLeadsWithQuery = asyncHandler(async (req, res, next) => {
-  try {
-
-    const leads = await getAllLeads();
-    const filters = req.query;
-   
-  const filteredLeads = leads.filter(lead => {
-      let isValid = true;
-      for (key in filters) {       
-          isValid = isValid && lead[key]== filters[key]
-      }
-      return isValid;
-  });
- 
-    if (filteredLeads) {
-      res.send(filteredLeads)
-    } else if(!filteredLeads ){
-      res.json(leads)
-    } else{
-      res.status(404).json({ error: "Leads not found" });
-    }
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch leads", error: error });
-  }
-})
 
 //grouped lead 
 
@@ -96,7 +88,6 @@ try {
   res.status(500).json({ error: "Failed to fetch leads", error: error });
 }
 })
-
 
 //update lead
 
@@ -222,4 +213,4 @@ const getAllComment = asyncHandler(async (req, res, next) => {
 
 
 
-module.exports = { addNewLead, findAllLeads, getAllLeadsWithQuery, groupedLeadBy, updateLeadById, leadFindById,  deleteLeadById ,addComment, getAllComment};
+module.exports = { addNewLead, findAllLeads, groupedLeadBy, updateLeadById, leadFindById,  deleteLeadById ,addComment, getAllComment};
