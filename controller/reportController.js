@@ -39,27 +39,29 @@ const getLeadClosedByAgent = asyncHandler(async(req, res)=>{
         const leads = await Lead.find().populate("salesAgent")
        const closedLeads = leads.filter(lead=> lead.status === "Closed")
     
-        let groupAgentLeads = (leadsData, keys) => {
-            return leadsData.reduce((result, currentLead) => {
-                let currentKey = keys(currentLead);
-                result[currentKey] = result[currentKey] || [];
-                result[currentKey].push(currentLead);
-                return result;
-            }, {});
-        };
+    //     let groupAgentLeads = (leadsData, keys) => {
+    //         return leadsData.reduce((result, currentLead) => {
+    //             let currentKey = keys(currentLead);
+    //             result[currentKey] = result[currentKey] || [];
+    //             result[currentKey].push(currentLead);
+    //             return result;
+    //         }, {});
+    //     };
         
-        let keys = closedLeads => `${closedLeads[`salesAgent`]}_${closedLeads["status"]}`;
+    //     let keys = closedLeads => `${closedLeads[`salesAgent`]}_${closedLeads["status"]}`;
      
-       res.status(201).json({message: "Lead closed by agent", group: groupAgentLeads(closedLeads, keys)})
+    //    res.status(201).json({message: "Lead closed by agent", group: groupAgentLeads(closedLeads, keys)})
 
-    // const grouped = Object.values(
-    //     closedLeads.reduce((acc, obj) => {
-    //         acc[obj.salesAgent] = acc[obj.salesAgent] || [];
-    //         acc[obj.salesAgent].push(obj);
-    //         return acc;
-    //     }, {})
-    // )
-    // res.json(grouped)
+    const grouped = Object.values(
+        closedLeads.reduce((acc, obj) => {
+            acc[obj.salesAgent] = acc[obj.salesAgent] || [];
+            acc[obj.salesAgent].push(obj);
+            return acc;
+        }, {})
+    )
+    
+    res.status(201).json({message: "Lead closed by agent", grouped})
+
 
     } catch (error) {
         res.status(500).json({ error: "Internet server error.", error: error }); 
