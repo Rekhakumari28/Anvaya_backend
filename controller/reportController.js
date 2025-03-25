@@ -68,4 +68,7 @@ const getLeadClosedByAgent = asyncHandler(async(req, res)=>{
     }
 })
 
+
+
+
 module.exports = {getReportLastWeek, getPipeline, getLeadClosedByAgent}
