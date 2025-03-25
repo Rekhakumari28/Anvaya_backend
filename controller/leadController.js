@@ -27,7 +27,7 @@ const addNewLead = asyncHandler(async (req, res, next) => {
 //get all lead
 async function getAllLeads() {
   try {
-    const lead = await Lead.find()
+    const lead = await Lead.find().populate('salesAgent')
     return lead;
   } catch (error) {
     console.log("Error occured while fetching leads.");
