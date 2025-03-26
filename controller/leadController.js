@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
-
 const Lead = require("../models/lead.model.js");
 const Comment = require("../models/comment.model.js");
+
 //add lead
 async function addLead(newLead) {
   try {
@@ -15,8 +15,54 @@ async function addLead(newLead) {
 
 const addNewLead = asyncHandler(async (req, res, next) => {
   try {
-    const lead = await addLead(req.body);
-    res.status(201).json({ message: "New lead created.", lead: lead });
+    const { name, source, salesAgent, status, timeToClose, priority } =
+      req.body;
+
+    let errorMessage = "";
+    if ( !name &&  !source &&!salesAgent && !status && !timeToClose && !priority  ) {
+      errorMessage = {
+        error:
+          "name, source, salesAgent, status, timeToClose, priority all fields are required.",
+      };
+      res.status(400).json({ error: errorMessage });
+    } 
+    else if (!name) {
+      errorMessage = { error: "Invalid input: 'name' is required." };
+      res.status(400).json({ error: errorMessage });
+    } 
+    else if (!source) {
+      errorMessage = { error: "Invalid input: 'source' is required." };
+      res.status(400).json({ error: errorMessage });
+    } 
+    else if (!salesAgent) {
+      errorMessage = { error: "Invalid input: 'salesAgent' is required." };
+      res.status(400).json({ error: errorMessage });
+    } 
+    else if (!status) {
+      errorMessage = { error: "Invalid input: 'status' is required." };
+      res.status(400).json({ error: errorMessage });
+    } 
+    else if (!timeToClose) {
+      errorMessage = { error: "Invalid input: 'timeToClose' is required." };
+      res.status(400).json({ error: errorMessage });
+    } 
+    else if (!priority) {
+      errorMessage = { error: "Invalid input: 'priority' is required." };
+      res.status(400).json({ error: errorMessage });
+    }
+     else {
+      const lead = await addLead({
+        name,
+        source,
+        salesAgent,
+        status,
+        timeToClose,
+        priority,
+      });
+      res.status(201).json({ message: "New lead created.", lead: lead });
+     }     
+    
+
   } catch (error) {
     res.status(500).json({ error: "Failed to create lead.", error: error });
   }
@@ -187,7 +233,7 @@ const addComment = asyncHandler(async (req, res, next) => {
     });
 
     const savedComment = await newComment.save();
-    
+
     res
       .status(201)
       .json({ message: "Comment added successfully", savedComment });
