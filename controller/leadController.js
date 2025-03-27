@@ -257,12 +257,8 @@ const getAllComment = asyncHandler(async (req, res, next) => {
       "author",
       "name"
     );
-
-    if (comments.length > 0) {
-      res.status(200).json({ message: "getting all comments", comments });
-    } else {
-      res.status(404).json({ error: "There is no comment." });
-    }
+    res.status(200).json({ message: "getting all comments", comments });
+    
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
