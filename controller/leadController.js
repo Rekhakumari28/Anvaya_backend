@@ -71,17 +71,19 @@ const addNewLead = asyncHandler(async (req, res, next) => {
 //get all lead
 async function getAllLeads() {
   try {
-    const lead = await Lead.find().populate("salesAgent");
-    return lead;
+    const leads = await Lead.find().populate("salesAgent")    
+    return leads;
   } catch (error) {
-    console.log("Error occured while fetching leads.");
+    console.log("Error occured while loading leads.", error);
   }
 }
 
+
 const findAllLeads = asyncHandler(async (req, res, next) => {
   try {
-    const leads = await getAllLeads();
-
+   
+    const leads = await getAllLeads()
+   
     const filters = req.query;
 
     const filteredLeads = leads.filter((lead) => {
@@ -92,7 +94,7 @@ const findAllLeads = asyncHandler(async (req, res, next) => {
       return isValid;
     });
 
-    if (filteredLeads) {
+ if (filteredLeads) {
       res.send(filteredLeads);
     } else if (!filteredLeads) {
       res.json(leads);
@@ -214,17 +216,9 @@ const addComment = asyncHandler(async (req, res, next) => {
     const leadId = req.params.leadId;
     const { commentText, author } = req.body;
 
-    if (!commentText) {
-      return res
-        .status(400)
-        .json({ error: "Comment text is required and must be a string." });
-    }
+   
     const lead = await Lead.findById(leadId);
-    if (!lead) {
-      return res
-        .status(404)
-        .json({ error: `Lead with ID '${leadId}' not found.` });
-    }
+   
 
     const newComment = new Comment({
       lead: leadId,
@@ -233,6 +227,19 @@ const addComment = asyncHandler(async (req, res, next) => {
     });
 
     const savedComment = await newComment.save();
+
+    if (!lead) {
+      return res
+        .status(404)
+        .json({ error: `Lead with ID '${leadId}' not found.` });
+    }
+    
+    if (!commentText) {
+      return res
+        .status(400)
+        .json({ error: "Comment text is required and must be a string." });
+    }
+
 
     res
       .status(201)
@@ -260,9 +267,10 @@ const getAllComment = asyncHandler(async (req, res, next) => {
     res.status(200).json({ message: "getting all comments", comments });
     
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" ,error});
   }
 });
+
 
 module.exports = {
   addNewLead,
