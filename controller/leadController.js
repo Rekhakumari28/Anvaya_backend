@@ -19,38 +19,38 @@ const addNewLead = asyncHandler(async (req, res, next) => {
       req.body;
 
     let errorMessage = "";
-    if ( !name &&  !source &&!salesAgent && !status && !timeToClose && !priority  ) {
+    if (
+      !name &&
+      !source &&
+      !salesAgent &&
+      !status &&
+      !timeToClose &&
+      !priority
+    ) {
       errorMessage = {
         error:
           "name, source, salesAgent, status, timeToClose, priority all fields are required.",
       };
       res.status(400).json({ error: errorMessage });
-    } 
-    else if (!name) {
+    } else if (!name) {
       errorMessage = { error: "Invalid input: 'name' is required." };
       res.status(400).json({ error: errorMessage });
-    } 
-    else if (!source) {
+    } else if (!source) {
       errorMessage = { error: "Invalid input: 'source' is required." };
       res.status(400).json({ error: errorMessage });
-    } 
-    else if (!salesAgent) {
+    } else if (!salesAgent) {
       errorMessage = { error: "Invalid input: 'salesAgent' is required." };
       res.status(400).json({ error: errorMessage });
-    } 
-    else if (!status) {
+    } else if (!status) {
       errorMessage = { error: "Invalid input: 'status' is required." };
       res.status(400).json({ error: errorMessage });
-    } 
-    else if (!timeToClose) {
+    } else if (!timeToClose) {
       errorMessage = { error: "Invalid input: 'timeToClose' is required." };
       res.status(400).json({ error: errorMessage });
-    } 
-    else if (!priority) {
+    } else if (!priority) {
       errorMessage = { error: "Invalid input: 'priority' is required." };
       res.status(400).json({ error: errorMessage });
-    }
-     else {
+    } else {
       const lead = await addLead({
         name,
         source,
@@ -60,9 +60,7 @@ const addNewLead = asyncHandler(async (req, res, next) => {
         priority,
       });
       res.status(201).json({ message: "New lead created.", lead: lead });
-     }     
-    
-
+    }
   } catch (error) {
     res.status(500).json({ error: "Failed to create lead.", error: error });
   }
@@ -71,19 +69,17 @@ const addNewLead = asyncHandler(async (req, res, next) => {
 //get all lead
 async function getAllLeads() {
   try {
-    const leads = await Lead.find().populate("salesAgent")    
+    const leads = await Lead.find().populate("salesAgent");
     return leads;
   } catch (error) {
     console.log("Error occured while loading leads.", error);
   }
 }
 
-
 const findAllLeads = asyncHandler(async (req, res, next) => {
   try {
-   
-    const leads = await getAllLeads()
-   
+    const leads = await getAllLeads();
+
     const filters = req.query;
 
     const filteredLeads = leads.filter((lead) => {
@@ -94,7 +90,7 @@ const findAllLeads = asyncHandler(async (req, res, next) => {
       return isValid;
     });
 
- if (filteredLeads) {
+    if (filteredLeads) {
       res.send(filteredLeads);
     } else if (!filteredLeads) {
       res.json(leads);
@@ -124,6 +120,52 @@ const groupedLeadBy = asyncHandler(async (req, res, next) => {
       res.status(201).json({
         message: "Lead groupedBy is created as: ",
         leadsByStatus: groupByBrand(leads),
+      });
+    } else {
+      res.status(404).json({ error: "Lead not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch leads", error: error });
+  }
+});
+
+//sort
+
+const sortLeadByPriority = asyncHandler(async (req, res, next) => {
+  try {
+    const leads = await getAllLeads();
+    const sortLeadLow = leads.filter((lead) => lead.priority === "Low");
+    const sortLeadMedium = leads.filter((lead) => lead.priority === "Medium");
+    const sortLeadHigh = leads.filter((lead) => lead.priority === "High");
+    const concatSortedData = [
+      ...sortLeadLow,
+      ...sortLeadMedium,
+      ...sortLeadHigh,
+    ];
+
+    if (concatSortedData) {
+      res.status(201).json({
+        message: "Sorted Leads: ",
+        concatSortedData: concatSortedData,
+      });
+    } else {
+      res.status(404).json({ error: "Lead not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch leads", error: error });
+  }
+});
+
+const sortLeadByTimeToClose = asyncHandler(async (req, res, next) => {
+  try {
+    const leads = await getAllLeads();
+    const sortByTimeToClose = leads.sort(
+      (a, b) => a.timeToClose - b.timeToClose
+    );
+    if (sortByTimeToClose) {
+      res.status(201).json({
+        message: "Sorted Leads: ",
+        sortByTimeToClose: sortByTimeToClose,
       });
     } else {
       res.status(404).json({ error: "Lead not found" });
@@ -216,9 +258,7 @@ const addComment = asyncHandler(async (req, res, next) => {
     const leadId = req.params.leadId;
     const { commentText, author } = req.body;
 
-   
     const lead = await Lead.findById(leadId);
-   
 
     const newComment = new Comment({
       lead: leadId,
@@ -233,13 +273,12 @@ const addComment = asyncHandler(async (req, res, next) => {
         .status(404)
         .json({ error: `Lead with ID '${leadId}' not found.` });
     }
-    
+
     if (!commentText) {
       return res
         .status(400)
         .json({ error: "Comment text is required and must be a string." });
     }
-
 
     res
       .status(201)
@@ -265,12 +304,10 @@ const getAllComment = asyncHandler(async (req, res, next) => {
       "name"
     );
     res.status(200).json({ message: "getting all comments", comments });
-    
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" ,error});
+    res.status(500).json({ error: "Internal server error", error });
   }
 });
-
 
 module.exports = {
   addNewLead,
@@ -281,4 +318,6 @@ module.exports = {
   deleteLeadById,
   addComment,
   getAllComment,
+  sortLeadByPriority,
+  sortLeadByTimeToClose,
 };
