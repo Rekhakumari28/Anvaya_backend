@@ -133,24 +133,34 @@ const groupedLeadBy = asyncHandler(async (req, res, next) => {
 
 const sortLeadByPriority = asyncHandler(async (req, res, next) => {
   try {
+    const order = req.params.order
+    console.log(order)
     const leads = await getAllLeads();
     const sortLeadLow = leads.filter((lead) => lead.priority === "Low");
     const sortLeadMedium = leads.filter((lead) => lead.priority === "Medium");
     const sortLeadHigh = leads.filter((lead) => lead.priority === "High");
-    const concatSortedData = [
-      ...sortLeadLow,
-      ...sortLeadMedium,
-      ...sortLeadHigh,
-    ];
-
-    if (concatSortedData) {
+    if(order === "Low-High"){
+      const concatSortedDataLowToHigh = [
+        ...sortLeadLow,
+        ...sortLeadMedium,
+        ...sortLeadHigh,
+      ];
       res.status(201).json({
         message: "Sorted Leads: ",
-        concatSortedData: concatSortedData,
+        concatSortedData: concatSortedDataLowToHigh,
       });
-    } else {
-      res.status(404).json({ error: "Lead not found" });
-    }
+    }else{
+      const concatSortedDataHighToLow = [
+        ...sortLeadHigh,
+        ...sortLeadMedium,      
+        ...sortLeadLow,
+      ];
+      res.status(201).json({
+        message: "Sorted Leads: ",
+        concatSortedData: concatSortedDataHighToLow,
+      });
+    }    
+
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch leads", error: error });
   }

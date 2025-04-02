@@ -10,7 +10,7 @@ const  { addNewLead, findAllLeads,  groupedLeadBy, updateLeadById, leadFindById,
 router.post("/", addNewLead)
 router.get("/", findAllLeads)
 router.get("/grouped", groupedLeadBy)
-router.get("/priority", sortLeadByPriority)
+router.get("/priority/:order", sortLeadByPriority)
 router.get("/timeToClose", sortLeadByTimeToClose)
 router.patch("/:leadId", updateLeadById)
 router.get("/:leadId", leadFindById)
