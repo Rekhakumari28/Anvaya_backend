@@ -27,12 +27,14 @@ const salesAgentRouter = require("./routes/salesAgentRoute.js");
 const leadRouter = require("./routes/leadRoute.js");
 const tagRouter = require('./routes/tagsRoute.js')
 const reportRouter = require("./routes/reportRoute.js")
+const userRouter = require("./routes/userRouter.js")
 
 //routes
 app.use("/api/agents", salesAgentRouter);
 app.use("/api/leads", leadRouter);
 app.use("/api/tags", tagRouter)
 app.use("/api/report", reportRouter)
+app.use("/api/users",userRouter) 
 
 //port
 const PORT = 3000;

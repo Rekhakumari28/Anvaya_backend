@@ -6,19 +6,22 @@ const router = express.Router()
 //import routes functions for lead
 const  { addNewLead, findAllLeads,  groupedLeadBy, updateLeadById, leadFindById, deleteLeadById ,addComment, getAllComment, sortLeadByPriority, sortLeadByTimeToClose} = require('../controller/leadController.js')
 
-//lead route
-router.post("/", addNewLead)
-router.get("/", findAllLeads)
-router.get("/grouped", groupedLeadBy)
-router.get("/priority/:order", sortLeadByPriority)
-router.get("/timeToClose", sortLeadByTimeToClose)
-router.patch("/:leadId", updateLeadById)
-router.get("/:leadId", leadFindById)
-router.delete("/:leadId", deleteLeadById)
-//comment route
-router.post("/comments",addComment)
-router.get("/comments", getAllComment)
+const authMiddleware = require('../middleware/authMiddleware.js')
 
-router.route("/:leadId/comments").post(addComment)
-router.route("/:leadId/comments").get(getAllComment)
+
+//lead route
+router.post("/", authMiddleware, addNewLead)
+router.get("/",authMiddleware, findAllLeads)
+router.get("/grouped",authMiddleware, groupedLeadBy)
+router.get("/priority/:order",authMiddleware, sortLeadByPriority)
+router.get("/timeToClose",authMiddleware, sortLeadByTimeToClose)
+router.patch("/:leadId",authMiddleware, updateLeadById)
+router.get("/:leadId",authMiddleware, leadFindById)
+router.delete("/:leadId",authMiddleware, deleteLeadById)
+//comment route
+router.post("/comments",authMiddleware, addComment)
+router.get("/comments",authMiddleware, getAllComment)
+
+router.post("/:leadId/comments",authMiddleware, addComment)
+router.get("/:leadId/comments",authMiddleware, getAllComment)
 module.exports = router
