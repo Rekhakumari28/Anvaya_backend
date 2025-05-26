@@ -1,215 +1,116 @@
 const asyncHandler = require("express-async-handler");
 const Lead = require("../models/lead.model.js");
 const Comment = require("../models/comment.model.js");
-
+const mongoose = require("mongoose");
 //add lead
-async function addLead(newLead) {
-  try {
-    const leadData = new Lead(newLead);
-    const savedLeadData = await leadData.save();
-    return savedLeadData;
-  } catch (error) {
-    console.log("Error occured while creating lead", error);
-  }
-}
 
 const addNewLead = asyncHandler(async (req, res, next) => {
   try {
-    const { name, source, salesAgent, status, timeToClose, priority } =
-      req.body;
-
-    let errorMessage = "";
-    if (
-      !name &&
-      !source &&
-      !salesAgent &&
-      !status &&
-      !timeToClose &&
-      !priority
-    ) {
-      errorMessage = {
-        error:
-          "name, source, salesAgent, status, timeToClose, priority all fields are required.",
-      };
-      res.status(400).json({ error: errorMessage });
-    } else if (!name) {
-      errorMessage = { error: "Invalid input: 'name' is required." };
-      res.status(400).json({ error: errorMessage });
-    } else if (!source) {
-      errorMessage = { error: "Invalid input: 'source' is required." };
-      res.status(400).json({ error: errorMessage });
-    } else if (!salesAgent) {
-      errorMessage = { error: "Invalid input: 'salesAgent' is required." };
-      res.status(400).json({ error: errorMessage });
-    } else if (!status) {
-      errorMessage = { error: "Invalid input: 'status' is required." };
-      res.status(400).json({ error: errorMessage });
-    } else if (!timeToClose) {
-      errorMessage = { error: "Invalid input: 'timeToClose' is required." };
-      res.status(400).json({ error: errorMessage });
-    } else if (!priority) {
-      errorMessage = { error: "Invalid input: 'priority' is required." };
-      res.status(400).json({ error: errorMessage });
-    } else {
-      const lead = await addLead({
-        name,
-        source,
-        salesAgent,
-        status,
-        timeToClose,
-        priority,
-      });
-      res.status(201).json({ message: "New lead created.", lead: lead });
+        const lead = new Lead(req.body)
+    const saveLead = await lead.save()
+    const populatedLead = await Lead.findById(saveLead._id).populate("salesAgent");
+    res.status(201).json({message:"New lead created.", populatedLead})
+       
+    } catch (error) {
+        res.status(500).json({error: "Failed to create new lead.", error})
     }
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create lead.", error: error });
-  }
 });
+
 
 //get all lead
-async function getAllLeads() {
-  try {
-    const leads = await Lead.find().populate("salesAgent");
-    return leads;
-  } catch (error) {
-    console.log("Error occured while loading leads.", error);
-  }
+
+const findLeadsWithFilters = asyncHandler (async (req, res) => {
+    const { salesAgent, status, tags, source , prioritySort, dateSort } = req.query;
+   
+ 
+    const filter = {};
+    if (salesAgent) {
+      filter.salesAgent = salesAgent;
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+     if (tags) filter.tags = { $in: tags.split(",") };
+
+    if (source) {
+      filter.source = source;
+    }
+    let sortOptions = {}
+
+const priorityOrder={
+    Low:1,
+    Medium:2,
+    High:3
 }
 
-const findAllLeads = asyncHandler(async (req, res, next) => {
-  try {
-    const leads = await getAllLeads();
 
-    const filters = req.query;
+//priority sorting 
+if(prioritySort === "Low-High"){
+    sortOptions.priority = 1
+}else if(prioritySort === "High-Low"){
+    sortOptions.priority = -1
+}
 
-    const filteredLeads = leads.filter((lead) => {
-      let isValid = true;
-      for (key in filters) {
-        isValid = isValid && lead[key] == filters[key];
-      }
-      return isValid;
-    });
-
-    if (filteredLeads) {
-      res.send(filteredLeads);
-    } else if (!filteredLeads) {
-      res.json(leads);
-    } else {
-      res.status(404).json({ error: "Leads not found" });
+//date sorting
+if(dateSort){
+    if(dateSort === "Newest-Oldest"){
+        sortOptions.createdAt = -1
+    }else if(dateSort === "Oldest-Newest"){
+        sortOptions.createdAt = 1;
     }
+}
+
+  try {  
+    const allLeads = await Lead.find(filter).sort(sortOptions).populate('salesAgent');
+
+    if(prioritySort){
+            allLeads.sort((a, b) => {
+                const priorityA = priorityOrder[a.priority] || 0; // Convert to numeric priority
+                const priorityB = priorityOrder[b.priority] || 0; // Convert to numeric priority
+                return prioritySort === "Low-High"
+                  ? priorityA - priorityB
+                  : priorityB - priorityA;
+              })
+        }
+    res.status(200).json(allLeads);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch leads", error: error });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-//grouped lead
 
-const groupedLeadBy = asyncHandler(async (req, res, next) => {
-  try {
-    const leads = await getAllLeads();
-    const groupBy = (keys) => (array) =>
-      array.reduce((objectsByKeyValue, obj) => {
-        const value = keys.map((key) => obj[key]).join("-");
-        objectsByKeyValue[value] = (objectsByKeyValue[value] || []).concat(obj);
-        return objectsByKeyValue;
-      }, {});
-
-    const groupByBrand = groupBy(["status"]);
-
-    if (groupByBrand(leads)) {
-      res.status(201).json({
-        message: "Lead groupedBy is created as: ",
-        leadsByStatus: groupByBrand(leads),
-      });
-    } else {
-      res.status(404).json({ error: "Lead not found" });
-    }
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch leads", error: error });
-  }
-});
-
-//sort
-
-const sortLeadByPriority = asyncHandler(async (req, res, next) => {
-  try {
-    const order = req.params.order
-    console.log(order)
-    const leads = await getAllLeads();
-    const sortLeadLow = leads.filter((lead) => lead.priority === "Low");
-    const sortLeadMedium = leads.filter((lead) => lead.priority === "Medium");
-    const sortLeadHigh = leads.filter((lead) => lead.priority === "High");
-    if(order === "Low-High"){
-      const concatSortedDataLowToHigh = [
-        ...sortLeadLow,
-        ...sortLeadMedium,
-        ...sortLeadHigh,
-      ];
-      res.status(201).json({
-        message: "Sorted Leads: ",
-        concatSortedData: concatSortedDataLowToHigh,
-      });
-    }else{
-      const concatSortedDataHighToLow = [
-        ...sortLeadHigh,
-        ...sortLeadMedium,      
-        ...sortLeadLow,
-      ];
-      res.status(201).json({
-        message: "Sorted Leads: ",
-        concatSortedData: concatSortedDataHighToLow,
-      });
-    }    
-
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch leads", error: error });
-  }
-});
-
-const sortLeadByTimeToClose = asyncHandler(async (req, res, next) => {
-  try {
-    const leads = await getAllLeads();
-    const sortByTimeToClose = leads.sort(
-      (a, b) => a.timeToClose - b.timeToClose
-    );
-    if (sortByTimeToClose) {
-      res.status(201).json({
-        message: "Sorted Leads: ",
-        sortByTimeToClose: sortByTimeToClose,
-      });
-    } else {
-      res.status(404).json({ error: "Lead not found" });
-    }
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch leads", error: error });
-  }
-});
 
 //update lead
 
-async function updateLead(leadId, dataToUpdate) {
+const updateLeadById = asyncHandler( async (req, res) => {
   try {
-    const lead = await Lead.findByIdAndUpdate(leadId, dataToUpdate, {
+    const leadId = req.params.leadId;
+    const dataToUpdate = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(leadId)) {
+      return res.status(400).json({ error: "Invalid Lead Id" });
+    } 
+   
+    if (dataToUpdate.status === "Closed" && !dataToUpdate.closedAt) {
+      dataToUpdate.closedAt = new Date();
+    }
+
+    const updatedLead = await Lead.findByIdAndUpdate(leadId, dataToUpdate, {
       new: true,
     });
-    return lead;
-  } catch (error) {
-    console.log("An error occured while updating lead.");
-  }
-}
 
-const updateLeadById = asyncHandler(async (req, res, next) => {
-  try {
-    const lead = await updateLead(req.params.leadId, req.body);
-    if (lead) {
-      res
-        .status(200)
-        .json({ message: "lead updated successfully.", lead: lead });
-    } else {
-      res.status(404).json({ error: "lead not found" });
+    if (!updatedLead) {
+      return res
+        .status(404)
+        .json({ error: `Lead with id ${leadId} not found` });
     }
+
+    res.status(200).json(updatedLead);
   } catch (error) {
-    res.status(500).json({ error: "Failed to update lead." });
+    console.error("Error updating lead:", error);
+    res.status(500).json({ error: "Internal server error." });
   }
 });
 
@@ -321,13 +222,10 @@ const getAllComment = asyncHandler(async (req, res, next) => {
 
 module.exports = {
   addNewLead,
-  findAllLeads,
-  groupedLeadBy,
+  findLeadsWithFilters,
   updateLeadById,
   leadFindById,
   deleteLeadById,
   addComment,
-  getAllComment,
-  sortLeadByPriority,
-  sortLeadByTimeToClose,
+  getAllComment  
 };
