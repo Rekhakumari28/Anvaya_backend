@@ -20,7 +20,7 @@ const addNewLead = asyncHandler(async (req, res, next) => {
 //get all lead
 
 const findLeadsWithFilters = asyncHandler(async (req, res) => {
-  const { salesAgent, status, tags, source, prioritySort, dateSort } =
+  const { salesAgent, status, tags, source, prioritySort, timeToCloseSort } =
     req.query;
 
   const filter = {};
@@ -53,12 +53,8 @@ const findLeadsWithFilters = asyncHandler(async (req, res) => {
   }
 
   //date sorting
-  if (dateSort) {
-    if (dateSort === "Newest-Oldest") {
-      sortOptions.createdAt = -1;
-    } else if (dateSort === "Oldest-Newest") {
-      sortOptions.createdAt = 1;
-    }
+  if (timeToCloseSort) {
+    sortOptions.timeToClose ==="minToHigh"
   }
 
   try {
@@ -74,6 +70,10 @@ const findLeadsWithFilters = asyncHandler(async (req, res) => {
           ? priorityA - priorityB
           : priorityB - priorityA;
       });
+    }
+
+    if(timeToCloseSort){
+     return allLeads.sort((a,b)=>a.timeToClose - b.timeToClose)
     }
     res.status(200).json(allLeads);
   } catch (error) {
