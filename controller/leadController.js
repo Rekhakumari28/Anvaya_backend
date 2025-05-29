@@ -22,7 +22,7 @@ const addNewLead = asyncHandler(async (req, res, next) => {
 const findLeadsWithFilters = asyncHandler(async (req, res) => {
   const { salesAgent, status, tags, source, prioritySort, timeToCloseSort } =
     req.query;
-
+ try {
   const filter = {};
   if (salesAgent) {
     filter.salesAgent = salesAgent;
@@ -57,7 +57,7 @@ const findLeadsWithFilters = asyncHandler(async (req, res) => {
     sortOptions.timeToClose ==="minToHigh"
   }
 
-  try {
+ 
     const allLeads = await Lead.find(filter)
       .sort(sortOptions)
       .populate("salesAgent");
