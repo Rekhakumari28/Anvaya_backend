@@ -20,7 +20,7 @@ const addNewLead = asyncHandler(async (req, res, next) => {
 //get all lead
 
 const findLeadsWithFilters = asyncHandler(async (req, res) => {
-  const { salesAgent, status, tags, source } =
+  const { salesAgent, status, tags, source , prioritySort} =
     req.query;
  try {
   const filter = {};
@@ -37,10 +37,37 @@ const findLeadsWithFilters = asyncHandler(async (req, res) => {
   if (source) {
     filter.source = source;
   } 
-    const allLeads = await Lead.find(filter).populate("salesAgent");
+
+  let sortOptions = {};
+  const priorityOrder = {
+    Low: 1,
+    Medium: 2,
+    High: 3,
+  }
+  //priority sorting
+  if (prioritySort === "Low-High") {
+    sortOptions.priority = 1;
+  } else if (prioritySort === "High-Low") {
+    sortOptions.priority = -1;
+  }
+
+  //to do : sorting
+
+    const allLeads = await Lead.find(filter).sort(sortOptions).populate("salesAgent");
+    if (prioritySort) {
+      allLeads.sort((a, b) => {
+        const priorityA = priorityOrder[a.priority] || 0; // Convert to numeric priority
+        const priorityB = priorityOrder[b.priority] || 0; // Convert to numeric priority
+        return prioritySort === "Low-High"
+          ? priorityA - priorityB
+          : priorityB - priorityA;
+      });
+
+  
+    }
     res.status(200).json(allLeads);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error", error });
   }
 });
 
